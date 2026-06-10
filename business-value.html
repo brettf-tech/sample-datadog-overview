@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datadog — Business value calculator</title>
+<link rel="stylesheet" href="assets/colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    background:var(--bg-page);color:var(--fg-primary);
+    font-family:var(--font-sans);line-height:var(--leading-normal);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ TOP NAV (shared with products page) ============ */
+  .nav{position:sticky;top:0;z-index:50;background:var(--bg-surface);
+    border-bottom:1px solid var(--border-default)}
+  .nav-inner{max-width:1080px;margin:0 auto;padding:0 32px;height:56px;
+    display:flex;align-items:center;gap:28px}
+  .brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:0 0 auto}
+  .brand img{width:26px;height:auto;display:block}
+  .brand .word{font-family:var(--font-display);font-weight:var(--weight-bold);
+    font-size:19px;letter-spacing:-.02em;color:var(--fg-primary)}
+  .nav-links{display:flex;align-items:center;gap:22px;margin-left:10px}
+  .nav-links a{font-size:var(--text-md);color:var(--fg-secondary);text-decoration:none;
+    font-weight:var(--weight-medium)}
+  .nav-links a.active{color:var(--fg-primary)}
+  .nav-links a:hover{color:var(--dd-purple)}
+
+  /* ============ LAYOUT ============ */
+  .wrap{max-width:1000px;margin:0 auto;padding:0 32px 52px}
+  header.hero{padding:60px 0 30px}
+  .eyebrow{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--dd-purple);font-weight:var(--weight-medium);
+    display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+  .eyebrow::before{content:"";width:24px;height:1px;background:var(--dd-purple)}
+  h1{font-family:var(--font-display);font-weight:var(--weight-extrabold);
+    font-size:clamp(32px,5.5vw,56px);line-height:1.02;letter-spacing:-.03em;
+    margin-bottom:16px;color:var(--fg-primary);max-width:16ch}
+  h1 .hl{color:var(--dd-purple)}
+  .lede{font-size:clamp(15px,1.6vw,18px);color:var(--fg-secondary);max-width:64ch;
+    line-height:var(--leading-relaxed)}
+
+  /* ============ CARD ============ */
+  .card{background:var(--bg-surface);border:1px solid var(--border-default);
+    border-radius:var(--radius-xl);box-shadow:var(--shadow-md);overflow:hidden}
+  .toolbar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;
+    padding:22px clamp(18px,3vw,28px);border-bottom:1px solid var(--border-default);
+    background:var(--bg-sunken)}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.grow{flex:1 1 320px}
+  label{font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--fg-secondary)}
+  select,input{font-family:inherit;font-size:var(--text-md);color:var(--fg-primary);
+    background:var(--bg-surface);border:1px solid var(--border-default);
+    border-radius:var(--radius-sm);padding:10px 12px;width:100%;
+    transition:border-color var(--duration-fast),box-shadow var(--duration-fast)}
+  select:focus,input:focus{outline:none;border-color:var(--dd-purple);box-shadow:var(--shadow-focus)}
+  select{cursor:pointer;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23632CA6' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+  .cur-field{flex:0 0 104px}
+  .cur-field select{padding-right:28px;background-position:right 9px center}
+
+  .outcome-tag{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.06em;
+    color:var(--dd-purple);font-weight:var(--weight-medium);text-transform:uppercase;
+    padding:18px clamp(18px,3vw,28px) 0}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:0}
+  @media(min-width:780px){.grid{grid-template-columns:1.12fr .88fr}}
+  .inputs{padding:14px clamp(18px,3vw,28px) 26px}
+  .calc-desc{font-size:var(--text-md);color:var(--fg-secondary);margin-bottom:10px;max-width:50ch}
+
+  .products{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px;align-items:center}
+  .chip{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.02em;font-weight:var(--weight-medium);
+    color:var(--dd-purple);background:var(--dd-purple-50);border:1px solid var(--dd-purple-100);
+    padding:4px 9px;border-radius:var(--radius-pill)}
+  .chip-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--fg-tertiary);align-self:center;margin-right:2px}
+
+  .row{margin-bottom:16px}
+  .row label{display:block;margin-bottom:6px}
+  .input-shell{position:relative;display:flex;align-items:center}
+  .input-shell .pre,.input-shell .suf{position:absolute;font-size:var(--text-md);
+    color:var(--fg-tertiary);pointer-events:none;font-weight:var(--weight-medium)}
+  .input-shell .pre{left:12px}
+  .input-shell .suf{right:12px}
+  .input-shell input.has-pre{padding-left:26px}
+  .input-shell input.has-suf{padding-right:34px}
+  .sub-note{font-size:var(--text-xs);color:var(--fg-tertiary);margin-top:5px;font-family:var(--font-mono)}
+
+  .improve{margin-top:10px;padding:16px;border:1px dashed var(--dd-purple-300);
+    border-radius:var(--radius-lg);background:var(--dd-purple-50)}
+  .improve > label{color:var(--dd-purple);font-weight:var(--weight-semibold);display:block;margin-bottom:2px;font-size:var(--text-md)}
+  .improve .guide{font-size:var(--text-sm);color:var(--fg-secondary);margin:7px 0 4px;line-height:1.55}
+  .improve .guide a{color:var(--dd-purple);font-weight:var(--weight-semibold);text-decoration:none;
+    border-bottom:1px solid var(--dd-purple-200)}
+  .improve .guide a:hover{border-bottom-color:var(--dd-purple)}
+  .slider-row{display:flex;align-items:center;gap:14px;margin-top:14px}
+  input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:6px;border:none;padding:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--dd-purple) var(--pct,30%),var(--dd-purple-100) var(--pct,30%));cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+    background:var(--dd-purple);border:3px solid #fff;box-shadow:0 1px 4px rgba(99,44,166,.4);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--dd-purple);border:3px solid #fff;cursor:pointer}
+  .pct-box{flex:0 0 104px}
+  .pct-box .input-shell input{text-align:center;font-weight:var(--weight-semibold);font-family:var(--font-mono);
+    padding-left:14px;padding-right:28px}
+  .pct-box .suf{right:13px}
+
+  .refs{margin-top:16px;border-top:1px solid var(--dd-purple-100);padding-top:13px}
+  .refs .refs-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--dd-purple);font-weight:var(--weight-medium);margin-bottom:8px}
+  .refs ul{list-style:none}
+  .refs li{font-size:var(--text-sm);color:var(--fg-secondary);line-height:1.45;padding-left:15px;position:relative;margin-bottom:6px}
+  .refs li::before{content:"›";position:absolute;left:0;color:var(--dd-purple);font-weight:700}
+
+  /* ============ RESULTS (dark) ============ */
+  .results{background:var(--dd-gray-900);color:#fff;padding:30px clamp(18px,3vw,28px);
+    display:flex;flex-direction:column;justify-content:center;gap:22px}
+  .res-block .res-label{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--dd-gray-400);margin-bottom:7px}
+  .res-block .res-num{font-family:var(--font-mono);font-weight:var(--weight-semibold);
+    letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+  .res-current .res-num,.res-projected .res-num{font-size:clamp(22px,4vw,28px);color:var(--dd-gray-150)}
+  .res-divider{height:1px;background:rgba(255,255,255,.1)}
+  .res-value .res-label{color:#7FD3A6}
+  .res-value .res-num{font-family:var(--font-display);font-weight:var(--weight-extrabold);
+    font-size:clamp(40px,9vw,58px);line-height:1;color:#fff;letter-spacing:-.03em}
+  .res-value .res-num .small{font-size:.30em;color:#7FD3A6;font-family:var(--font-mono);
+    font-weight:var(--weight-medium);display:block;margin-top:12px;letter-spacing:.04em;
+    text-transform:uppercase}
+
+  .calc-note{margin-top:22px;font-size:var(--text-sm);color:var(--fg-tertiary);line-height:1.65;max-width:84ch}
+
+  /* ============ QUALITATIVE VALUE ============ */
+  .qual{border-top:1px solid var(--border-default);background:var(--bg-sunken);
+    padding:24px clamp(18px,3vw,28px) 28px}
+  .qual-title{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--dd-purple);font-weight:var(--weight-medium);margin-bottom:16px;
+    display:flex;align-items:center;gap:12px}
+  .qual-title::after{content:"";flex:1;height:1px;background:var(--border-default)}
+  .qual-list{display:grid;grid-template-columns:1fr 1fr;gap:11px 30px}
+  @media(max-width:680px){.qual-list{grid-template-columns:1fr}}
+  .qual-item{display:flex;gap:10px;font-size:var(--text-sm);color:var(--fg-secondary);line-height:1.45}
+  .qual-item .ar{flex:0 0 auto;font-weight:700;font-family:var(--font-mono);font-size:13px;line-height:1.35}
+  .qual-item .ar.up{color:var(--dd-green)}
+  .qual-item .ar.down{color:var(--dd-teal)}
+  .qual-item .ar.dot{color:var(--dd-purple)}
+  .calc-note strong{color:var(--fg-secondary);font-weight:var(--weight-semibold)}
+  .reset{background:none;border:none;color:var(--dd-purple);font-family:var(--font-mono);
+    font-size:var(--text-sm);font-weight:var(--weight-medium);letter-spacing:.04em;cursor:pointer;
+    padding:0;margin-top:18px;text-transform:uppercase}
+  .reset:hover{text-decoration:underline}
+
+  /* ============ CTA BAND ============ */
+  .cta-band{border-top:1px solid var(--border-default);background:linear-gradient(180deg,var(--bg-surface),var(--bg-page))}
+  .cta-inner{max-width:1000px;margin:0 auto;padding:60px 32px;display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap}
+  .cta-inner h2{font-family:var(--font-display);font-size:clamp(24px,3vw,34px);font-weight:var(--weight-extrabold);letter-spacing:-.025em;color:var(--fg-primary);max-width:20ch;line-height:1.08}
+  .cta-inner p{color:var(--fg-secondary);font-size:var(--text-md);margin-top:10px;max-width:48ch;line-height:var(--leading-relaxed)}
+  .cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--dd-purple);color:#fff;border:0;border-radius:var(--radius-sm);padding:12px 20px;font-family:inherit;font-size:var(--text-md);font-weight:var(--weight-semibold);cursor:pointer;text-decoration:none;transition:background var(--duration-fast) var(--ease-out)}
+  .btn-primary:hover{background:var(--dd-purple-deep)}
+  .btn-ghost{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--fg-primary);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:12px 20px;font-family:inherit;font-size:var(--text-md);font-weight:var(--weight-semibold);text-decoration:none;transition:border-color var(--duration-fast),background var(--duration-fast)}
+  .btn-ghost:hover{border-color:var(--dd-purple);background:var(--dd-purple-50)}
+
+  /* ============ SITE FOOTER (dark) ============ */
+  .site-footer{background:var(--dd-gray-900);color:#fff}
+  .footer-top{max-width:1000px;margin:0 auto;padding:60px 32px 44px;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:44px}
+  @media(max-width:820px){.footer-top{grid-template-columns:1fr 1fr;gap:36px 32px}}
+  @media(max-width:520px){.footer-top{grid-template-columns:1fr}}
+  .footer-brand .brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;margin-bottom:16px}
+  .footer-brand .brand img{width:26px}
+  .footer-brand .brand .word{font-family:var(--font-display);font-weight:var(--weight-bold);font-size:19px;letter-spacing:-.02em;color:#fff}
+  .footer-brand p{color:var(--dd-gray-400);font-size:var(--text-sm);line-height:1.6;max-width:36ch}
+  .footer-brand .badge{display:inline-flex;align-items:center;margin-top:16px;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--dd-gray-300);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius-pill);padding:5px 12px;letter-spacing:.03em}
+  .fcol h4{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dd-gray-400);font-weight:var(--weight-medium);margin-bottom:14px}
+  .fcol a{display:block;color:var(--dd-gray-200);font-size:var(--text-md);text-decoration:none;padding:5px 0;transition:color var(--duration-fast) var(--ease-out)}
+  .fcol a:hover{color:#fff}
+  .footer-bottom{border-top:1px solid rgba(255,255,255,.1)}
+  .footer-bottom-inner{max-width:1000px;margin:0 auto;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .footer-bottom-inner .copy{font-size:var(--text-sm);color:var(--dd-gray-400)}
+  .footer-legal{display:flex;gap:22px;flex-wrap:wrap}
+  .footer-legal a{font-size:var(--text-sm);color:var(--dd-gray-400);text-decoration:none;transition:color var(--duration-fast)}
+  .footer-legal a:hover{color:#fff}
+</style>
+</head>
+<body>
+  <!-- ============ TOP NAV ============ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/datadog-icon.svg" alt="">
+        <span class="word">Datadog</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Products</a>
+        <a href="business-value.html" class="active">Business value</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero" data-screen-label="hero">
+      <span class="eyebrow">Datadog business value</span>
+      <h1>What's the cost of <span class="hl">doing nothing?</span></h1>
+      <p class="lede">Estimate the annual business value of a Datadog investment. Pick the area you want to quantify, enter your current numbers, and set the improvement you expect to see. Every figure updates instantly.</p>
+    </header>
+
+    <div class="card" data-screen-label="calculator">
+      <div class="toolbar">
+        <div class="field grow">
+          <label for="calc">Choose what to quantify</label>
+          <select id="calc"></select>
+        </div>
+        <div class="field cur-field">
+          <label for="cur">Currency</label>
+          <select id="cur">
+            <option value="$">USD $</option><option value="€">EUR €</option><option value="£">GBP £</option>
+            <option value="A$">AUD A$</option><option value="C$">CAD C$</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="outcome-tag" id="outcomeTag"></div>
+      <div class="grid">
+        <div class="inputs">
+          <p class="calc-desc" id="calcDesc"></p>
+          <div class="products" id="products"></div>
+          <div id="fields"></div>
+
+          <div class="improve">
+            <label for="impPct">Expected improvement with Datadog</label>
+            <p class="guide">Use the reference points below to set a realistic estimate. Start conservative — these figures are directional, and the actual improvement for your environment is something a short trial would confirm. Want to see how teams like yours measure up? Browse <a href="https://www.datadoghq.com/customers/?type-0=case-studies" target="_blank" rel="noopener">Datadog customer case studies</a> for the results others have achieved.</p>
+            <div class="slider-row">
+              <input type="range" id="impRange" min="0" max="90" value="30">
+              <div class="pct-box"><div class="input-shell"><input type="number" id="impPct" value="30" min="0" max="100" class="has-suf"><span class="suf">%</span></div></div>
+            </div>
+            <div class="refs">
+              <div class="refs-title">Reference points</div>
+              <ul id="refList"></ul>
+            </div>
+          </div>
+
+          <button class="reset" id="reset">↺ Reset all numbers</button>
+        </div>
+
+        <div class="results">
+          <div class="res-block res-current">
+            <div class="res-label" id="curLabel">Current annual cost</div>
+            <div class="res-num" id="curVal">—</div>
+          </div>
+          <div class="res-divider"></div>
+          <div class="res-block res-projected">
+            <div class="res-label">Projected with Datadog</div>
+            <div class="res-num" id="projVal">—</div>
+          </div>
+          <div class="res-divider"></div>
+          <div class="res-block res-value">
+            <div class="res-label">Estimated annual value</div>
+            <div class="res-num" id="valVal">—<span class="small" id="valNote"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qual" id="qual"></div>
+    </div>
+
+    <div class="calc-note">
+      <p><strong>How to read this.</strong> "Current annual cost" reflects what the inefficiency or risk costs you today, based on the numbers you enter. "Estimated annual value" is the portion Datadog is expected to recover or prevent at the improvement level set. Salary inputs are converted to an hourly rate using ~2,080 working hours per year. These are directional estimates — a short trial would confirm the actual improvement for your environment before building a full business case.</p>
+    </div>
+  </div>
+
+  <!-- ============ CTA BAND ============ -->
+  <section class="cta-band">
+    <div class="cta-inner">
+      <div>
+        <h2>Explore the platform behind the numbers.</h2>
+        <p>Every value above maps to specific Datadog products. Browse all 78, organized by the outcome they drive.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn-primary" href="index.html">Browse all products &rarr;</a>
+        <a class="btn-ghost" href="https://www.datadoghq.com/customers/?type-0=case-studies" target="_blank" rel="noopener">See customer results</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SITE FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="index.html"><img src="assets/datadog-icon.svg" alt=""><span class="word">Datadog</span></a>
+        <p>The observability and security platform for cloud applications — metrics, traces, logs, and Bits AI in one place.</p>
+        <span class="badge">78 products · 6 outcomes · 1 platform</span>
+      </div>
+      <div class="fcol">
+        <h4>Outcomes</h4>
+        <a href="index.html#oc-1">Enhance user experience</a>
+        <a href="index.html#oc-2">Improve reliability</a>
+        <a href="index.html#oc-3">Optimize costs</a>
+        <a href="index.html#oc-4">Reduce security risk</a>
+        <a href="index.html#oc-5">Ship code faster</a>
+        <a href="index.html#oc-6">AI</a>
+      </div>
+      <div class="fcol">
+        <h4>Explore</h4>
+        <a href="index.html">All products</a>
+        <a href="business-value.html">Business value calculator</a>
+        <a href="https://www.datadoghq.com/product/platform/" target="_blank" rel="noopener">Platform overview</a>
+        <a href="https://www.datadoghq.com/customers/?type-0=case-studies" target="_blank" rel="noopener">Customer stories</a>
+      </div>
+      <div class="fcol">
+        <h4>Resources</h4>
+        <a href="https://docs.datadoghq.com/" target="_blank" rel="noopener">Documentation</a>
+        <a href="https://www.datadoghq.com/blog/" target="_blank" rel="noopener">Blog</a>
+        <a href="https://www.datadoghq.com/about/resources/" target="_blank" rel="noopener">Brand &amp; resources</a>
+        <a href="https://www.datadoghq.com/about/" target="_blank" rel="noopener">About Datadog</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span class="copy">© 2026 Datadog, Inc. · Design exploration, not an official page.</span>
+        <div class="footer-legal">
+          <a href="https://www.datadoghq.com/legal/privacy/" target="_blank" rel="noopener">Privacy</a>
+          <a href="https://www.datadoghq.com/legal/terms/" target="_blank" rel="noopener">Terms</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+<script>
+const HRS_PER_YEAR = 2080;
+
+const CALCS = [
+  { id:"incident", outcome:"Improve Reliability & Performance", label:"Incident resolution efficiency",
+    desc:"Engineering time spent resolving incidents each year.", curLabel:"Current annual cost",
+    products:["APM","Log Management","Infrastructure Monitoring","Incident Response","Watchdog","Bits AI SRE"],
+    fields:[
+      {id:"a",label:"Incidents per year",type:"num",val:120},
+      {id:"b",label:"Avg. time to resolve per incident (hours)",type:"num",val:4},
+      {id:"c",label:"People involved per incident (FTEs)",type:"num",val:3},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:160000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Raymond James cut incident resolution from 15 minutes to under a minute and automated over half its remediation workflows.",
+          "Datadog customers commonly report MTTR reductions of roughly 40–60%."] },
+
+  { id:"alerts", outcome:"Improve Reliability & Performance", label:"Alert fatigue",
+    desc:"Time spent triaging and investigating alerts each year.", curLabel:"Current annual cost",
+    products:["Actionable Alerting","Watchdog","Event Management","Bits AI Agents"],
+    fields:[
+      {id:"a",label:"Alerts per year",type:"num",val:5000},
+      {id:"b",label:"Time to investigate each alert (hours)",type:"num",val:0.5},
+      {id:"c",label:"People involved per alert (FTEs)",type:"num",val:1},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:160000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Reductions come from cutting noise and correlating signals — size this from the noise reduction observed in a POV.",
+          "Tip: enter investigation time in hours (15 min = 0.25)."] },
+
+  { id:"downtime", outcome:"Improve Reliability & Performance", label:"Revenue loss from customer-impacting incidents",
+    desc:"Revenue lost (or SLA penalties owed) from outages that reach customers.", curLabel:"Current annual revenue loss",
+    products:["Real User Monitoring","Synthetic Monitoring","APM","Incident Response"],
+    fields:[
+      {id:"a",label:"Customer-impacting incidents per year",type:"num",val:24},
+      {id:"b",label:"Customers impacted per incident",type:"num",val:500},
+      {id:"c",label:"Avg. time to resolve (hours)",type:"num",val:3},
+      {id:"d",label:"Revenue lost / SLA penalty per customer, per hour",type:"cur",val:5}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Posten Bring cut incidents by 75% and improved availability to 99.92% with proactive detection.",
+          "Shinsegae improved mean time to detection by 92%."] },
+
+  { id:"obstco", outcome:"Optimize Technology Costs", label:"Reduce observability tool cost (TCO)",
+    desc:"Total cost of today's monitoring tools, plus the people who manage them.", curLabel:"Current annual TCO",
+    products:["Observability Pipelines","Cloud Cost Management","Storage Management","Governance Console"],
+    fields:[
+      {id:"a",label:"Annual cost of all monitoring tools (licensing + hosting)",type:"cur",val:400000},
+      {id:"b",label:"People managing / maintaining those tools (FTEs)",type:"num",val:4},
+      {id:"c",label:"% of their time spent on tool upkeep",type:"pct",val:50},
+      {id:"d",label:"Average fully-loaded annual salary",type:"cur",val:160000}
+    ],
+    base:v=>v.a + (v.b*(v.c/100)*v.d),
+    refs:["Porsche Informatik consolidated 10 separate tools into 1 with Datadog.",
+          "Consolidation reduces redundant licensing, hosting, and the FTE effort of maintaining multiple tools."] },
+
+  { id:"cloud", outcome:"Optimize Technology Costs", label:"Optimize cloud costs",
+    desc:"Excess cloud spend, plus the cost of undetected cost spikes.", curLabel:"Current annual excess spend",
+    products:["Cloud Cost Management","Kubernetes Autoscaling","Continuous Profiler","Infrastructure Monitoring"],
+    fields:[
+      {id:"a",label:"Annual excess / wasted cloud spend",type:"cur",val:300000},
+      {id:"b",label:"Cost overages or spikes per year",type:"num",val:12},
+      {id:"c",label:"Average cost of a spike, per day",type:"cur",val:2000},
+      {id:"d",label:"Average days to detect a spike",type:"num",val:5}
+    ],
+    base:v=>v.a + (v.b*v.c*v.d),
+    refs:["Aviva saved £350K/year by flagging underused resources.",
+          "Glassdoor cut infrastructure cost ~35%; NatWest Boxed cut costs ~45% with cost management."] },
+
+  { id:"vulns", outcome:"Reduce Security Risk", label:"Streamline vulnerability management",
+    desc:"Time spent investigating and validating vulnerabilities each year.", curLabel:"Current annual cost",
+    products:["Vulnerability Management","Cloud Security","Software Composition Analysis"],
+    fields:[
+      {id:"a",label:"Vulnerability scans / findings per year",type:"num",val:2000},
+      {id:"b",label:"Avg. time to investigate each (hours)",type:"num",val:1},
+      {id:"c",label:"People involved per investigation (FTEs)",type:"num",val:2},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:175000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Runtime-aware prioritization and fewer false positives cut time spent chasing low-risk findings.",
+          "Size this from the false-positive reduction observed in a POV."] },
+
+  { id:"secincident", outcome:"Reduce Security Risk", label:"Accelerate security incident remediation",
+    desc:"Effort spent resolving security incidents each year.", curLabel:"Current annual cost",
+    products:["Cloud SIEM","Workload Protection","Workflow Automation","Bits AI Security Analyst"],
+    fields:[
+      {id:"a",label:"Security incidents per year",type:"num",val:50},
+      {id:"b",label:"Mean time to resolve (hours)",type:"num",val:8},
+      {id:"c",label:"People involved per incident (FTEs)",type:"num",val:3},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:175000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Automated triage and unified investigation reduce the time and headcount needed to close incidents.",
+          "Size this from automation and time-to-resolution gains seen in a POV."] },
+
+  { id:"audit", outcome:"Reduce Security Risk", label:"Audit readiness & response",
+    desc:"Time spent preparing for and responding to audits each year.", curLabel:"Current annual cost",
+    products:["Compliance","Cloud Security","Audit Trail"],
+    fields:[
+      {id:"a",label:"Internal + external audits per year",type:"num",val:6},
+      {id:"b",label:"Avg. time to prepare for & respond to each (hours)",type:"num",val:80},
+      {id:"c",label:"People fielding audit requests (FTEs)",type:"num",val:3},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:175000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Continuous compliance and framework-aligned reporting cut the scramble each audit creates.",
+          "Out-of-the-box compliance frameworks reduce manual evidence-gathering."] },
+
+  { id:"devprod", outcome:"Ship Better Code Faster", label:"Increase developer productivity",
+    desc:"The cost of developer time lost to non-core work today.", curLabel:"Current annual cost of lost time",
+    products:["CI Pipeline Visibility","Internal Developer Portal","IDE Plugins","DORA Metrics"],
+    fields:[
+      {id:"a",label:"Developers in scope",type:"num",val:50},
+      {id:"b",label:"% of their time lost to non-core work",type:"pct",val:25},
+      {id:"c",label:"Average fully-loaded annual salary",type:"cur",val:160000}
+    ],
+    base:v=>v.a*(v.b/100)*v.c,
+    refs:["Redfin developers now spend ~70% of their time on new feature development.",
+          "Okta reported $488K in developer productivity gains from reduced context-switching."] },
+
+  { id:"flaky", outcome:"Ship Better Code Faster", label:"Eliminate flaky-test rework",
+    desc:"Time spent finding, fixing, and re-running flaky tests each year.", curLabel:"Current annual cost",
+    products:["Test Optimization","Continuous Testing","Code Coverage"],
+    fields:[
+      {id:"a",label:"Flaky tests per year",type:"num",val:500},
+      {id:"b",label:"Time to find, fix & re-run each (hours)",type:"num",val:1.5},
+      {id:"c",label:"People involved per fix (FTEs)",type:"num",val:1},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:160000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Betterment reached a 95%+ CI success rate, up from under 50%, with 75% faster pipelines.",
+          "Datadog customers commonly see 50%+ fewer flaky-test reruns."] },
+
+  { id:"cicd", outcome:"Ship Better Code Faster", label:"Reduce CI/CD pipeline failure loss",
+    desc:"Developer time lost to pipeline failures each year.", curLabel:"Current annual cost",
+    products:["CI Pipeline Visibility","Test Optimization","DORA Metrics"],
+    fields:[
+      {id:"a",label:"Pipeline failures per year",type:"num",val:300},
+      {id:"b",label:"Time to remediate each failure (hours)",type:"num",val:2},
+      {id:"c",label:"Developers impacted during downtime",type:"num",val:4},
+      {id:"d",label:"Average fully-loaded annual salary per person",type:"cur",annual:true,val:160000}
+    ],
+    base:v=>v.a*v.b*v.c*v.d,
+    refs:["Betterment cut CI costs by 50% with smarter pipelines.",
+          "Datadog customers commonly see 40–60% fewer pipeline failures."] }
+];
+
+let cur="$", active=CALCS[0];
+
+const QUAL = {
+  "Enhance User Experience":[
+    "↑ Brand reputation — better app ratings, fewer negative reviews",
+    "↑ Customer satisfaction — seamless experiences lift NPS",
+    "↑ Business agility — launch new features with confidence"
+  ],
+  "Improve Reliability & Performance":[
+    "↑ Application & website uptime",
+    "↓ Customer-impacting incidents",
+    "↑ App stability & performance",
+    "↓ Customer support tickets",
+    "↑ Proactive anomaly & incident detection",
+    "↓ Developer time pulled into incidents",
+    "↑ Customer satisfaction & NPS"
+  ],
+  "Optimize Technology Costs":[
+    "Fewer monitoring tools; easier to find and share telemetry",
+    "Simpler to calculate, report & communicate cloud costs org-wide",
+    "More observability coverage at lower or comparable cost",
+    "Fewer procurement cycles and tool contracts to manage",
+    "Stronger FinOps culture — reward teams for saving",
+    "Easier governance over observability and cloud spend",
+    "More self-service access to telemetry across teams",
+    "Less observability infrastructure to maintain"
+  ],
+  "Reduce Security Risk":[
+    "Lower risk of regulator fines from incidents or breaches",
+    "Greater customer trust from a strong compliance posture",
+    "Smaller attack blast radius via faster detection & root-cause analysis",
+    "Less operational drag from audits and compliance checks"
+  ],
+  "Ship Better Code Faster":[
+    "Faster engineering — fewer interruptions, quicker triage, better DevEx",
+    "Single source of truth — unified telemetry, clearer visibility",
+    "Reliability by design — SLO guardrails cut Sev1 incidents",
+    "Customer trust — fewer visible incidents reduce churn",
+    "Speed to innovate — safer releases enable more experimentation"
+  ]
+};
+
+const state={};
+const $=id=>document.getElementById(id);
+const calcSel=$("calc"), curSel=$("cur"), fieldsEl=$("fields");
+
+(function(){
+  const groups={};
+  CALCS.forEach(c=>{(groups[c.outcome] ||= []).push(c);});
+  Object.entries(groups).forEach(([outcome,items])=>{
+    const og=document.createElement("optgroup"); og.label=outcome;
+    items.forEach(c=>{const o=document.createElement("option");o.value=c.id;o.textContent=c.label;og.appendChild(o);});
+    calcSel.appendChild(og);
+  });
+})();
+
+function fmtMoney(n){ if(!isFinite(n))n=0; return cur+Math.round(n).toLocaleString("en-US"); }
+
+function renderProducts(){
+  const p=$("products"); p.innerHTML="";
+  if(!active.products||!active.products.length) return;
+  const lbl=document.createElement("span"); lbl.className="chip-label"; lbl.textContent="Powered by"; p.appendChild(lbl);
+  active.products.forEach(name=>{const c=document.createElement("span");c.className="chip";c.textContent=name;p.appendChild(c);});
+}
+
+function renderFields(){
+  fieldsEl.innerHTML="";
+  const saved=state[active.id]||{};
+  active.fields.forEach(f=>{
+    const v=(saved[f.id]!==undefined)?saved[f.id]:f.val;
+    const row=document.createElement("div"); row.className="row";
+    const isCur=f.type==="cur", isPct=f.type==="pct";
+    row.innerHTML=`
+      <label for="f_${f.id}">${f.label}</label>
+      <div class="input-shell">
+        ${isCur?`<span class="pre">${cur}</span>`:""}
+        <input type="number" id="f_${f.id}" value="${v}" min="0" step="any"
+          class="${isCur?'has-pre':''} ${isPct?'has-suf':''}">
+        ${isPct?`<span class="suf">%</span>`:""}
+      </div>
+      ${f.annual?`<div class="sub-note" id="hr_${f.id}"></div>`:""}`;
+    fieldsEl.appendChild(row);
+  });
+  fieldsEl.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",compute));
+}
+
+function renderRefs(){
+  const ul=$("refList"); ul.innerHTML="";
+  (active.refs||[]).forEach(r=>{const li=document.createElement("li");li.textContent=r;ul.appendChild(li);});
+}
+
+function renderQual(){
+  const box=$("qual"); const items=QUAL[active.outcome]||[];
+  if(!items.length){ box.style.display="none"; box.innerHTML=""; return; }
+  box.style.display="";
+  let h='<div class="qual-title">Qualitative value · '+active.outcome+'</div><div class="qual-list">';
+  items.forEach(s=>{
+    let cls="dot", ar="›", text=s;
+    const c=s.charAt(0);
+    if(c==="↑"){ cls="up"; ar="↑"; text=s.slice(1).trim(); }
+    else if(c==="↓"){ cls="down"; ar="↓"; text=s.slice(1).trim(); }
+    h+='<div class="qual-item"><span class="ar '+cls+'">'+ar+'</span><span>'+text+'</span></div>';
+  });
+  h+='</div>';
+  box.innerHTML=h;
+}
+
+function readValues(){
+  const v={};
+  active.fields.forEach(f=>{
+    const el=$("f_"+f.id);
+    let raw=parseFloat(el.value)||0;
+    (state[active.id] ||= {});
+    state[active.id][f.id]=raw;
+    if(f.annual){
+      const hr=raw/HRS_PER_YEAR;
+      const note=$("hr_"+f.id);
+      if(note) note.textContent="≈ "+fmtMoney(hr)+"/hour (based on ~2,080 hrs/year)";
+      v[f.id]=hr;
+    } else { v[f.id]=raw; }
+  });
+  return v;
+}
+
+function compute(){
+  const v=readValues();
+  const base=active.base(v);
+  const pct=Math.min(100,Math.max(0,parseFloat($("impPct").value)||0));
+  const value=base*(pct/100);
+  $("curVal").textContent=fmtMoney(base);
+  $("projVal").textContent=fmtMoney(base-value);
+  $("valVal").childNodes[0].nodeValue=fmtMoney(value);
+  $("valNote").textContent="per year · "+pct+"% improvement";
+}
+
+function loadCalc(){
+  $("outcomeTag").textContent=active.outcome;
+  $("calcDesc").textContent=active.desc;
+  $("curLabel").textContent=active.curLabel;
+  renderProducts(); renderFields(); renderRefs(); renderQual(); compute();
+}
+
+function syncPct(from){
+  const rng=$("impRange"), box=$("impPct");
+  let val=parseFloat(from==="range"?rng.value:box.value)||0;
+  val=Math.min(100,Math.max(0,val));
+  if(from==="range") box.value=val; else rng.value=Math.min(90,val);
+  rng.style.setProperty("--pct",Math.min(100,val)+"%");
+  compute();
+}
+$("impRange").addEventListener("input",()=>syncPct("range"));
+$("impPct").addEventListener("input",()=>syncPct("box"));
+calcSel.addEventListener("change",()=>{active=CALCS.find(c=>c.id===calcSel.value);loadCalc();});
+curSel.addEventListener("change",()=>{cur=curSel.value;renderProducts();renderFields();compute();});
+$("reset").addEventListener("click",()=>{
+  delete state[active.id];
+  $("impPct").value=30;$("impRange").value=30;syncPct("box");
+  renderFields();compute();
+});
+
+$("impRange").style.setProperty("--pct","30%");
+loadCalc();
+</script>
+</body>
+</html>

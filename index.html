@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-layout="accordion" data-density="comfortable" data-accent="on" data-cardstyle="list">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datadog — Products by outcome</title>
+<link rel="stylesheet" href="assets/colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg-page);color:var(--fg-primary);
+    font-family:var(--font-sans);line-height:var(--leading-normal);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+
+  /* per-outcome accent — drawn from the Datadog chart palette */
+  .sec{--accent:var(--dd-purple)}
+  html[data-accent="on"] .sec[data-oc="1"]{--accent:var(--dd-teal)}
+  html[data-accent="on"] .sec[data-oc="2"]{--accent:var(--dd-purple)}
+  html[data-accent="on"] .sec[data-oc="3"]{--accent:var(--dd-blue)}
+  html[data-accent="on"] .sec[data-oc="4"]{--accent:var(--dd-red)}
+  html[data-accent="on"] .sec[data-oc="5"]{--accent:var(--dd-green)}
+  html[data-accent="on"] .sec[data-oc="6"]{--accent:var(--dd-pink)}
+
+  /* ============ TOP NAV ============ */
+  .nav{position:sticky;top:0;z-index:50;background:var(--bg-surface);
+    border-bottom:1px solid var(--border-default)}
+  .nav-inner{max-width:1080px;margin:0 auto;padding:0 32px;height:56px;
+    display:flex;align-items:center;gap:28px}
+  .brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:0 0 auto}
+  .brand img{width:26px;height:auto;display:block}
+  .brand .word{font-family:var(--font-display);font-weight:var(--weight-bold);
+    font-size:19px;letter-spacing:-.02em;color:var(--fg-primary)}
+  .nav-links{display:flex;align-items:center;gap:22px;margin-left:10px}
+  .nav-links a{font-size:var(--text-md);color:var(--fg-secondary);text-decoration:none;
+    font-weight:var(--weight-medium)}
+  .nav-links a.active{color:var(--fg-primary)}
+  .nav-links a:hover{color:var(--dd-purple)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .nav-right .login{font-size:var(--text-md);color:var(--fg-secondary);text-decoration:none;
+    font-weight:var(--weight-medium)}
+  .nav-right .login:hover{color:var(--dd-purple)}
+  .btn-primary{display:inline-flex;align-items:center;gap:7px;background:var(--dd-purple);
+    color:var(--fg-on-purple);border:0;border-radius:var(--radius-sm);
+    padding:8px 15px;font-family:inherit;font-size:var(--text-md);font-weight:var(--weight-semibold);
+    cursor:pointer;text-decoration:none;transition:background var(--duration-fast) var(--ease-out)}
+  .btn-primary:hover{background:var(--dd-purple-deep)}
+  @media(max-width:720px){.nav-links{display:none}}
+
+  /* ============ LAYOUT WRAP ============ */
+  .wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+
+  /* ============ HERO ============ */
+  header.hero{padding:64px 0 28px;position:relative}
+  .eyebrow{font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--dd-purple);font-weight:var(--weight-medium);
+    display:inline-flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:24px;height:1px;background:var(--dd-purple)}
+  h1.title{font-family:var(--font-display);font-weight:var(--weight-extrabold);
+    font-size:clamp(38px,5.5vw,62px);line-height:1.02;letter-spacing:-.03em;
+    margin:16px 0 16px;color:var(--fg-primary);max-width:15ch}
+  h1.title .hl{color:var(--dd-purple)}
+  .lede{font-size:clamp(15px,1.6vw,18px);color:var(--fg-secondary);max-width:60ch;
+    line-height:var(--leading-relaxed)}
+  .lede strong{color:var(--fg-primary);font-weight:var(--weight-semibold)}
+
+  /* search */
+  .search-wrap{margin:30px 0 8px;position:relative;max-width:560px}
+  .search-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:17px;height:17px;color:var(--fg-muted);pointer-events:none}
+  .psearch{width:100%;background:var(--bg-surface);border:1px solid var(--border-default);
+    border-radius:var(--radius-md);padding:13px 16px 13px 42px;color:var(--fg-primary);
+    font-family:inherit;font-size:var(--text-md);transition:border-color var(--duration-fast),box-shadow var(--duration-fast)}
+  .psearch::placeholder{color:var(--fg-muted)}
+  .psearch:focus{outline:none;border-color:var(--dd-purple);box-shadow:var(--shadow-focus)}
+  .scount{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--fg-tertiary);
+    margin:10px 2px 0;min-height:15px;letter-spacing:.03em}
+
+  /* stat strip */
+  .stats{display:flex;gap:0;margin-top:26px;border:1px solid var(--border-default);
+    border-radius:var(--radius-md);background:var(--bg-surface);overflow:hidden;max-width:560px}
+  .stat{flex:1;padding:14px 18px;border-right:1px solid var(--border-subtle)}
+  .stat:last-child{border-right:0}
+  .stat .v{font-family:var(--font-display);font-size:22px;font-weight:var(--weight-bold);
+    letter-spacing:-.02em;color:var(--fg-primary)}
+  .stat .l{font-size:var(--text-xs);color:var(--fg-tertiary);margin-top:2px;
+    text-transform:uppercase;letter-spacing:.06em}
+
+  /* ============ OUTCOMES / ACCORDION ============ */
+  .outcomes{padding:14px 0 8px}
+  .sec{border:1px solid var(--border-default);border-radius:var(--radius-md);
+    background:var(--bg-surface);margin-bottom:10px;overflow:hidden;position:relative;
+    transition:border-color var(--duration-base) var(--ease-out),box-shadow var(--duration-base) var(--ease-out)}
+  .sec:hover{border-color:var(--border-strong)}
+  .sec.open{box-shadow:var(--shadow-sm)}
+  .sec::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:var(--accent);opacity:0;transition:opacity var(--duration-base) var(--ease-out)}
+  .sec.open::before,html[data-layout="expanded"] .sec::before{opacity:1}
+
+  .sec-head{width:100%;text-align:left;background:none;border:0;cursor:pointer;
+    color:var(--fg-primary);padding:20px 24px;display:flex;align-items:center;gap:18px;
+    font-family:inherit;transition:background var(--duration-fast) var(--ease-out)}
+  .sec-head:hover{background:var(--bg-hover)}
+  .sn{font-family:var(--font-mono);font-size:var(--text-xs);font-weight:var(--weight-medium);
+    color:var(--accent);letter-spacing:.08em;flex:0 0 auto;width:22px}
+  .ico-wrap{flex:0 0 auto;width:38px;height:38px;border-radius:var(--radius-md);
+    display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .ico-wrap svg{width:20px;height:20px;color:var(--accent)}
+  .st{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+  .stitle{font-family:var(--font-display);font-size:clamp(17px,2vw,21px);
+    font-weight:var(--weight-bold);letter-spacing:-.015em;line-height:1.15}
+  .stag{font-size:var(--text-md);color:var(--fg-secondary);line-height:1.4;max-width:78ch}
+  .cnt{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--fg-tertiary);
+    flex:0 0 auto;border:1px solid var(--border-default);border-radius:var(--radius-pill);
+    padding:3px 10px}
+  .chev{color:var(--fg-muted);transition:transform var(--duration-base) var(--ease-out);
+    display:inline-grid;place-items:center;flex:0 0 auto;width:20px;height:20px}
+  .chev svg{width:18px;height:18px}
+  .sec.open .chev{transform:rotate(180deg);color:var(--accent)}
+  html[data-layout="expanded"] .chev{display:none}
+
+  .sec-body{max-height:0;overflow:hidden;transition:max-height var(--duration-slow) var(--ease-in-out)}
+  .sec.open .sec-body{max-height:2600px}
+  html[data-layout="expanded"] .sec-body{max-height:none!important}
+
+  .sec-inner{padding:4px 16px 18px;display:grid;grid-template-columns:1fr 1fr;
+    gap:2px;border-top:1px solid var(--border-subtle);margin-top:-1px}
+  @media(max-width:760px){.sec-inner{grid-template-columns:1fr}}
+  .sub{grid-column:1/-1;font-family:var(--font-mono);font-size:var(--text-2xs);
+    letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);
+    padding:16px 10px 6px;display:flex;align-items:center;gap:10px}
+  .sub::after{content:"";flex:1;height:1px;background:var(--border-subtle)}
+
+  .prod{display:flex;flex-direction:column;gap:3px;text-decoration:none;
+    color:var(--fg-primary);padding:11px 12px;border-radius:var(--radius-sm);
+    border:1px solid transparent;transition:background var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out)}
+  .prod:hover{background:var(--bg-hover)}
+  .prod .r1{display:flex;align-items:center;gap:9px}
+  .prod .name{font-size:var(--text-md);font-weight:var(--weight-semibold);letter-spacing:-.005em}
+  .prod .also{font-family:var(--font-mono);font-size:9px;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--fg-tertiary);border:1px solid var(--border-default);
+    border-radius:var(--radius-xs);padding:1px 6px;white-space:nowrap;background:var(--bg-page)}
+  .prod .arr{margin-left:auto;color:var(--accent);opacity:0;transform:translate(-2px,2px);
+    transition:opacity var(--duration-fast),transform var(--duration-fast);display:grid;place-items:center}
+  .prod .arr svg{width:14px;height:14px}
+  .prod:hover .arr{opacity:1;transform:none}
+  .prod .desc{font-size:var(--text-sm);color:var(--fg-tertiary);line-height:1.4}
+
+  /* card style variant */
+  html[data-cardstyle="cards"] .sec-inner{gap:8px;padding:14px 16px 18px}
+  html[data-cardstyle="cards"] .prod{border:1px solid var(--border-default);
+    background:var(--bg-surface);padding:13px 14px}
+  html[data-cardstyle="cards"] .prod:hover{border-color:var(--accent);
+    box-shadow:var(--shadow-sm);background:var(--bg-surface)}
+
+  /* compact density */
+  html[data-density="compact"] .sec-head{padding:14px 22px}
+  html[data-density="compact"] .ico-wrap{width:30px;height:30px}
+  html[data-density="compact"] .ico-wrap svg{width:16px;height:16px}
+  html[data-density="compact"] .stag{display:none}
+  html[data-density="compact"] .prod{padding:7px 10px;gap:1px}
+  html[data-density="compact"] .prod .desc{display:none}
+  html[data-density="compact"] .sec-inner{padding:2px 14px 12px}
+
+  /* ============ BROWSE HEADER ============ */
+  .browse-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    padding:16px 2px 8px;flex-wrap:wrap}
+  .browse-head h2{font-family:var(--font-display);font-size:var(--text-lg);font-weight:var(--weight-bold);
+    letter-spacing:-.01em;color:var(--fg-primary)}
+  .browse-head .hint{font-family:var(--font-mono);font-size:var(--text-xs);color:var(--fg-tertiary)}
+
+  /* ============ CTA BAND ============ */
+  .cta-band{border-top:1px solid var(--border-default);
+    background:linear-gradient(180deg,var(--bg-surface),var(--bg-page))}
+  .cta-inner{max-width:1080px;margin:0 auto;padding:60px 32px;display:flex;align-items:center;
+    justify-content:space-between;gap:32px;flex-wrap:wrap}
+  .cta-inner h2{font-family:var(--font-display);font-size:clamp(24px,3vw,34px);font-weight:var(--weight-extrabold);
+    letter-spacing:-.025em;color:var(--fg-primary);max-width:20ch;line-height:1.08}
+  .cta-inner p{color:var(--fg-secondary);font-size:var(--text-md);margin-top:10px;max-width:48ch;
+    line-height:var(--leading-relaxed)}
+  .cta-actions{display:flex;gap:12px;flex-wrap:wrap}
+  .cta-actions .btn-primary{padding:12px 20px;font-size:var(--text-md)}
+  .btn-ghost{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--fg-primary);
+    border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:12px 20px;
+    font-family:inherit;font-size:var(--text-md);font-weight:var(--weight-semibold);text-decoration:none;
+    transition:border-color var(--duration-fast),background var(--duration-fast)}
+  .btn-ghost:hover{border-color:var(--dd-purple);background:var(--dd-purple-50)}
+
+  /* ============ SITE FOOTER (dark) ============ */
+  .site-footer{background:var(--dd-gray-900);color:#fff}
+  .footer-top{max-width:1080px;margin:0 auto;padding:60px 32px 44px;display:grid;
+    grid-template-columns:1.5fr 1fr 1fr 1fr;gap:44px}
+  @media(max-width:820px){.footer-top{grid-template-columns:1fr 1fr;gap:36px 32px}}
+  @media(max-width:520px){.footer-top{grid-template-columns:1fr}}
+  .footer-brand .brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;margin-bottom:16px}
+  .footer-brand .brand img{width:26px}
+  .footer-brand .brand .word{font-family:var(--font-display);font-weight:var(--weight-bold);font-size:19px;
+    letter-spacing:-.02em;color:#fff}
+  .footer-brand p{color:var(--dd-gray-400);font-size:var(--text-sm);line-height:1.6;max-width:36ch}
+  .footer-brand .badge{display:inline-flex;align-items:center;margin-top:16px;font-family:var(--font-mono);
+    font-size:var(--text-xs);color:var(--dd-gray-300);border:1px solid rgba(255,255,255,.14);
+    border-radius:var(--radius-pill);padding:5px 12px;letter-spacing:.03em}
+  .fcol h4{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--dd-gray-400);font-weight:var(--weight-medium);margin-bottom:14px}
+  .fcol a{display:block;color:var(--dd-gray-200);font-size:var(--text-md);text-decoration:none;
+    padding:5px 0;transition:color var(--duration-fast) var(--ease-out)}
+  .fcol a:hover{color:#fff}
+  .footer-bottom{border-top:1px solid rgba(255,255,255,.1)}
+  .footer-bottom-inner{max-width:1080px;margin:0 auto;padding:20px 32px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .footer-bottom-inner .copy{font-size:var(--text-sm);color:var(--dd-gray-400)}
+  .footer-legal{display:flex;gap:22px;flex-wrap:wrap}
+  .footer-legal a{font-size:var(--text-sm);color:var(--dd-gray-400);text-decoration:none;transition:color var(--duration-fast)}
+  .footer-legal a:hover{color:#fff}
+
+</style>
+</head>
+<body>
+  <!-- ============ TOP NAV ============ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top">
+        <img src="assets/datadog-icon.svg" alt="">
+        <span class="word">Datadog</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="active">Products</a>
+        <a href="business-value.html">Business value</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap" id="top">
+    <!-- ============ HERO ============ -->
+    <header class="hero" data-screen-label="hero">
+      <div class="eyebrow">The platform</div>
+      <h1 class="title">Six outcomes.<br><span class="hl">One platform.</span></h1>
+      <p class="lede"><strong>Search for any product, or start from the outcome that matters to you</strong> and see exactly which products get you there — from infrastructure and APM to security and Bits&nbsp;AI.</p>
+
+      <div class="search-wrap">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input class="psearch" id="psearch" type="text" placeholder="Search products — try logs, GPU, SIEM, dashboards…" autocomplete="off">
+      </div>
+      <div class="scount" id="scount"></div>
+
+      <div class="stats">
+        <div class="stat"><div class="v">6</div><div class="l">Outcomes</div></div>
+        <div class="stat"><div class="v">78</div><div class="l">Products</div></div>
+        <div class="stat"><div class="v">1</div><div class="l">Platform</div></div>
+      </div>
+    </header>
+
+    <!-- ============ OUTCOMES ============ -->
+    <div class="browse-head">
+      <h2>Browse by outcome</h2>
+      <span class="hint">Pick an outcome, or search above</span>
+    </div>
+    <main class="outcomes" id="outcomes">
+
+      <!-- 01 -->
+      <section class="sec" id="oc-1" data-oc="1" data-screen-label="outcome-01">
+        <button class="sec-head">
+          <span class="sn">01</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+          <span class="st"><span class="stitle">Enhance user experience</span><span class="stag">Deliver reliable, high-performing digital touchpoints while measuring user behavior and business impact to drive growth.</span></span>
+          <span class="cnt">9</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <a class="prod" href="https://www.datadoghq.com/product/real-user-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Real User Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">See issues hitting real users</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/real-user-monitoring/mobile-rum/" target="_blank" rel="noopener"><span class="r1"><span class="name">Mobile Real User Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Mobile performance from the user's side</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/session-replay/" target="_blank" rel="noopener"><span class="r1"><span class="name">Session Replay</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Replay real sessions to find friction</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/synthetic-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Synthetic Monitoring</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Catch problems before users do</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/product-analytics/" target="_blank" rel="noopener"><span class="r1"><span class="name">Product Analytics</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Understand how people use your product</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/experiments/" target="_blank" rel="noopener"><span class="r1"><span class="name">Experiments</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Run trusted A/B tests safely</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/mobile-app-testing/" target="_blank" rel="noopener"><span class="r1"><span class="name">Mobile App Testing</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Ship high-quality mobile apps</span></a>
+          <a class="prod" href="https://www.datadoghq.com/error-tracking/" target="_blank" rel="noopener"><span class="r1"><span class="name">Error Tracking</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Group and resolve user-facing errors</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/llm-observability/2/" target="_blank" rel="noopener"><span class="r1"><span class="name">LLM Observability</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Keep AI features fast and trustworthy</span></a>
+        </div></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="sec" id="oc-2" data-oc="2" data-screen-label="outcome-02">
+        <button class="sec-head">
+          <span class="sn">02</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></span>
+          <span class="st"><span class="stitle">Improve reliability &amp; performance</span><span class="stag">Prevent incidents and lower MTTR to avoid business disruption and revenue loss.</span></span>
+          <span class="cnt">34</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <div class="sub">Core monitoring</div>
+          <a class="prod" href="https://www.datadoghq.com/product/infrastructure-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Infrastructure Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Full-stack visibility into hosts and services</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/apm/" target="_blank" rel="noopener"><span class="r1"><span class="name">APM</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Trace requests across cloud-scale apps</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/universal-service-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Universal Service Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Map services without code changes</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/network-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Network Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Visibility across clouds and devices</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/container-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Container Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Insight and optimization for containers</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/serverless-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Serverless Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Fix serverless performance issues</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/metrics/" target="_blank" rel="noopener"><span class="r1"><span class="name">Metrics</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Unify metrics from your whole environment</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/log-management/" target="_blank" rel="noopener"><span class="r1"><span class="name">Log Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Full-stack logging at any scale</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/database-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Database Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Resolve slow queries across fleets</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/code-profiling/" target="_blank" rel="noopener"><span class="r1"><span class="name">Continuous Profiler</span><span class="also">also · Costs</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Always-on profiling to keep code lean</span></a>
+          <div class="sub">Data observability</div>
+          <a class="prod" href="https://docs.datadoghq.com/data_observability/" target="_blank" rel="noopener"><span class="r1"><span class="name">Data Observability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Reliable data for analytics and AI</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/data-observability/quality-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Data Quality Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Detect and prevent data quality issues</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/data-streams-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">Data Streams Monitoring</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Track streaming pipeline performance</span></a>
+          <div class="sub">Incident response &amp; automation</div>
+          <a class="prod" href="https://www.datadoghq.com/product/incident-response/" target="_blank" rel="noopener"><span class="r1"><span class="name">Incident Response</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Monitor, page, and manage in one flow</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/software-catalog/" target="_blank" rel="noopener"><span class="r1"><span class="name">Software Catalog</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Central hub for ownership and dependencies</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/service-level-objectives/" target="_blank" rel="noopener"><span class="r1"><span class="name">Service Level Objectives</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Actionable, context-driven SLOs</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/case-management/" target="_blank" rel="noopener"><span class="r1"><span class="name">Case Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Triage, assign, and close tickets faster</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/workflow-automation/" target="_blank" rel="noopener"><span class="r1"><span class="name">Workflow Automation</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Automate remediation across your stack</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/app-builder/" target="_blank" rel="noopener"><span class="r1"><span class="name">App Builder</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Custom apps to speed up remediation</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-sre/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI SRE</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Autonomous incident investigations</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-agents/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI Agents</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">AI agents for triage and fixes</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/watchdog/" target="_blank" rel="noopener"><span class="r1"><span class="name">Watchdog</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">AI anomaly detection across the platform</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/event-management/" target="_blank" rel="noopener"><span class="r1"><span class="name">Event Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Turn alert noise into actionable events</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/alerts/" target="_blank" rel="noopener"><span class="r1"><span class="name">Actionable Alerting</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">ML-driven alerts, fewer false alarms</span></a>
+          <div class="sub">Platform &amp; foundation</div>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/dashboards/" target="_blank" rel="noopener"><span class="r1"><span class="name">Interactive Dashboards</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Correlate metrics, traces, and logs</span></a>
+          <a class="prod" href="https://docs.datadoghq.com/notebooks/" target="_blank" rel="noopener"><span class="r1"><span class="name">Notebooks</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Collaborative documents with live data</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/fleet-automation/" target="_blank" rel="noopener"><span class="r1"><span class="name">Fleet Automation</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Observe and configure agents at scale</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/cloudcraft/" target="_blank" rel="noopener"><span class="r1"><span class="name">Cloudcraft</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Live diagrams of your cloud architecture</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/coscreen/" target="_blank" rel="noopener"><span class="r1"><span class="name">CoScreen</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Real-time screen sharing for engineers</span></a>
+          <a class="prod" href="https://docs.datadoghq.com/account_management/teams/" target="_blank" rel="noopener"><span class="r1"><span class="name">Teams</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Organize assets and views by team</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/integrations/" target="_blank" rel="noopener"><span class="r1"><span class="name">Integrations</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">800+ built-in integrations</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/integrations/#cat-aiml" target="_blank" rel="noopener"><span class="r1"><span class="name">AI Integrations</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Connect and monitor your AI/ML stack</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/agent-directory/" target="_blank" rel="noopener"><span class="r1"><span class="name">AI Agent Directory</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Connect your AI agents with setup details</span></a>
+          <a class="prod" href="https://www.datadoghq.com/marketplacepartners/" target="_blank" rel="noopener"><span class="r1"><span class="name">Marketplace</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Apps from Datadog technology partners</span></a>
+        </div></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="sec" id="oc-3" data-oc="3" data-screen-label="outcome-03">
+        <button class="sec-head">
+          <span class="sn">03</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>
+          <span class="st"><span class="stitle">Optimize technology costs</span><span class="stag">Reduce spend through observability and security tool consolidation and optimized cloud spend.</span></span>
+          <span class="cnt">8</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-cost-management/" target="_blank" rel="noopener"><span class="r1"><span class="name">Cloud Cost Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Cost visibility for engineering and FinOps</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/storage-management/" target="_blank" rel="noopener"><span class="r1"><span class="name">Storage Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Cut unnecessary object-storage spend</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/kubernetes-autoscaling/" target="_blank" rel="noopener"><span class="r1"><span class="name">Kubernetes Autoscaling</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Rightsize Kubernetes to reduce waste</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/observability-pipelines/" target="_blank" rel="noopener"><span class="r1"><span class="name">Observability Pipelines</span><span class="also">also · Security</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Control telemetry costs at scale</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/byoc-logs/" target="_blank" rel="noopener"><span class="r1"><span class="name">BYOC Log Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Store logs in your own infrastructure</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/governance-console/" target="_blank" rel="noopener"><span class="r1"><span class="name">Governance Console</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">One view for cost, access, and tagging</span></a>
+          <a class="prod" href="https://www.datadoghq.com/solutions/opentelemetry/" target="_blank" rel="noopener"><span class="r1"><span class="name">OpenTelemetry</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Standardize observability, avoid lock-in</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/gpu-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">GPU Monitoring</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Get the most from your GPU fleet</span></a>
+        </div></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="sec" id="oc-4" data-oc="4" data-screen-label="outcome-04">
+        <button class="sec-head">
+          <span class="sn">04</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path></svg></span>
+          <span class="st"><span class="stitle">Reduce security risk</span><span class="stag">Detect vulnerabilities and threats, enhancing security and compliance posture.</span></span>
+          <span class="cnt">17</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <div class="sub">Threat detection &amp; response</div>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-siem/" target="_blank" rel="noopener"><span class="r1"><span class="name">Cloud SIEM</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">AI-driven threat detection and response</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/workload-protection/" target="_blank" rel="noopener"><span class="r1"><span class="name">Workload Protection</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Real-time threat detection on hosts and containers</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/app-and-api-protection/" target="_blank" rel="noopener"><span class="r1"><span class="name">App &amp; API Protection</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Detect and block threats in production</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-security-analyst/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI Security Analyst</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Autonomous security investigations</span></a>
+          <div class="sub">Cloud security</div>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-security/" target="_blank" rel="noopener"><span class="r1"><span class="name">Cloud Security</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Unified cloud security for DevOps and security</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-security/#posture-management" target="_blank" rel="noopener"><span class="r1"><span class="name">Posture Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Track and improve security posture</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-security/#entitlement-management" target="_blank" rel="noopener"><span class="r1"><span class="name">Entitlement Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Reduce identity risk from excess permissions</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-security/#vulnerability-management" target="_blank" rel="noopener"><span class="r1"><span class="name">Vulnerability Management</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Fix the most critical cloud vulnerabilities</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/cloud-security/#compliance" target="_blank" rel="noopener"><span class="r1"><span class="name">Compliance</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">CIS, PCI DSS, SOC 2, and custom frameworks</span></a>
+          <div class="sub">Code security</div>
+          <a class="prod" href="https://www.datadoghq.com/product/code-security/" target="_blank" rel="noopener"><span class="r1"><span class="name">Code Security</span><span class="also">also · Ship Code</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Fix code and library vulns dev to prod</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/software-composition-analysis/" target="_blank" rel="noopener"><span class="r1"><span class="name">Software Composition Analysis</span><span class="also">also · Ship Code</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Real-time open source vuln detection</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/static-code-analysis/" target="_blank" rel="noopener"><span class="r1"><span class="name">Static Code Analysis (SAST)</span><span class="also">also · Ship Code</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Find and fix vulns in your workflow</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/iast/" target="_blank" rel="noopener"><span class="r1"><span class="name">Runtime Code Analysis (IAST)</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Detect real vulns in production code</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/iac-security/" target="_blank" rel="noopener"><span class="r1"><span class="name">IaC Security</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Secure infrastructure before production</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/secret-scanning/" target="_blank" rel="noopener"><span class="r1"><span class="name">Secret Scanning</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Catch exposed credentials early</span></a>
+          <div class="sub">Data protection</div>
+          <a class="prod" href="https://www.datadoghq.com/product/sensitive-data-scanner/" target="_blank" rel="noopener"><span class="r1"><span class="name">Sensitive Data Scanner</span><span class="also">also · Observability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Discover, classify, and redact sensitive data</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/audit-trail/" target="_blank" rel="noopener"><span class="r1"><span class="name">Audit Trail</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Monitor activity for compliance and governance</span></a>
+        </div></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="sec" id="oc-5" data-oc="5" data-screen-label="outcome-05">
+        <button class="sec-head">
+          <span class="sn">05</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></span>
+          <span class="st"><span class="stitle">Ship better code faster</span><span class="stag">Ship high-quality, secure products faster to accelerate revenue, while improving developer productivity across the software lifecycle.</span></span>
+          <span class="cnt">10</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <a class="prod" href="https://www.datadoghq.com/product/internal-developer-portal/" target="_blank" rel="noopener"><span class="r1"><span class="name">Internal Developer Portal</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Self-service with delivery guardrails</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ci-cd-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">CI Pipeline Visibility</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Monitor and improve builds and deploys</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/test-optimization/" target="_blank" rel="noopener"><span class="r1"><span class="name">Test Optimization</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Debug and accelerate test suites</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/continuous-testing/" target="_blank" rel="noopener"><span class="r1"><span class="name">Continuous Testing</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Fast, codeless, reliable testing</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/ides/" target="_blank" rel="noopener"><span class="r1"><span class="name">IDE Plugins</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Real observability data inside your IDE</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/dora-metrics/" target="_blank" rel="noopener"><span class="r1"><span class="name">DORA Metrics</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Measure delivery speed and quality</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/feature-flags/" target="_blank" rel="noopener"><span class="r1"><span class="name">Feature Flags</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Flags natively tied to observability</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/code-coverage/" target="_blank" rel="noopener"><span class="r1"><span class="name">Code Coverage</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Track and enforce test coverage</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/dynamic-instrumentation/" target="_blank" rel="noopener"><span class="r1"><span class="name">Dynamic Instrumentation</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Add logs and metrics without changing code</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/mcp-server/" target="_blank" rel="noopener"><span class="r1"><span class="name">MCP Server</span><span class="also">also · AI</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Give AI agents secure, real-time data access</span></a>
+        </div></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="sec" id="oc-6" data-oc="6" data-screen-label="outcome-06">
+        <button class="sec-head">
+          <span class="sn">06</span>
+          <span class="ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9L12 3Z"></path><path d="M18.5 15l.8 2 .2.8.8.2 2 .8-2 .8-.8.2-.2.8-.8 2-.8-2-.2-.8-.8-.2-.8-.2-2-.8.2-.8.8-.2.8-2Z"></path></svg></span>
+          <span class="st"><span class="stitle">AI</span><span class="stag">Build, ship, and run AI applications with confidence. These also live under the outcomes they serve above.</span></span>
+          <span class="cnt">9</span>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+        </button>
+        <div class="sec-body"><div class="sec-inner">
+          <div class="sub">Monitor your AI</div>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/llm-observability/2/" target="_blank" rel="noopener"><span class="r1"><span class="name">LLM Observability</span><span class="also">also · User Experience</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Keep AI features fast and trustworthy</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/gpu-monitoring/" target="_blank" rel="noopener"><span class="r1"><span class="name">GPU Monitoring</span><span class="also">also · Costs</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Get the most from your GPU fleet</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/integrations/#cat-aiml" target="_blank" rel="noopener"><span class="r1"><span class="name">AI Integrations</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Connect and monitor your AI/ML stack</span></a>
+          <div class="sub">AI that works for you</div>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-sre/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI SRE</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Autonomous incident investigations</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-agents/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI Agents</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">AI agents for triage and fixes</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/bits-ai-security-analyst/" target="_blank" rel="noopener"><span class="r1"><span class="name">Bits AI Security Analyst</span><span class="also">also · Security</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Autonomous security investigations</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/platform/watchdog/" target="_blank" rel="noopener"><span class="r1"><span class="name">Watchdog</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">AI anomaly detection across the platform</span></a>
+          <div class="sub">Connect AI to your data</div>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/mcp-server/" target="_blank" rel="noopener"><span class="r1"><span class="name">MCP Server</span><span class="also">also · Ship Code</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Give AI agents secure, real-time data access</span></a>
+          <a class="prod" href="https://www.datadoghq.com/product/ai/agent-directory/" target="_blank" rel="noopener"><span class="r1"><span class="name">AI Agent Directory</span><span class="also">also · Reliability</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></span><span class="desc">Connect your AI agents with setup details</span></a>
+        </div></div>
+      </section>
+
+    </main>
+
+    <!-- empty state -->
+    <div id="noresults" style="display:none;padding:48px 8px 64px;text-align:center;color:var(--fg-tertiary)">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--fg-secondary);margin-bottom:6px">No products match that search</div>
+      <div style="font-size:var(--text-md)">Try a broader term, or clear the search to browse all 78 products.</div>
+    </div>
+  </div>
+
+  <!-- ============ CTA BAND ============ -->
+  <section class="cta-band">
+    <div class="cta-inner">
+      <div>
+        <h2>See what Datadog could be worth to you.</h2>
+        <p>Quantify the value across reliability, cost, security, and developer velocity in about two minutes.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn-primary" href="business-value.html">Estimate your value &rarr;</a>
+        <a class="btn-ghost" href="https://www.datadoghq.com/product/platform/" target="_blank" rel="noopener">Explore the platform</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SITE FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="index.html"><img src="assets/datadog-icon.svg" alt=""><span class="word">Datadog</span></a>
+        <p>The observability and security platform for cloud applications — metrics, traces, logs, and Bits AI in one place.</p>
+        <span class="badge">78 products · 6 outcomes · 1 platform</span>
+      </div>
+      <div class="fcol">
+        <h4>Outcomes</h4>
+        <a href="#oc-1">Enhance user experience</a>
+        <a href="#oc-2">Improve reliability</a>
+        <a href="#oc-3">Optimize costs</a>
+        <a href="#oc-4">Reduce security risk</a>
+        <a href="#oc-5">Ship code faster</a>
+        <a href="#oc-6">AI</a>
+      </div>
+      <div class="fcol">
+        <h4>Explore</h4>
+        <a href="index.html">All products</a>
+        <a href="business-value.html">Business value calculator</a>
+        <a href="https://www.datadoghq.com/product/platform/" target="_blank" rel="noopener">Platform overview</a>
+        <a href="https://www.datadoghq.com/customers/?type-0=case-studies" target="_blank" rel="noopener">Customer stories</a>
+      </div>
+      <div class="fcol">
+        <h4>Resources</h4>
+        <a href="https://docs.datadoghq.com/" target="_blank" rel="noopener">Documentation</a>
+        <a href="https://www.datadoghq.com/blog/" target="_blank" rel="noopener">Blog</a>
+        <a href="https://www.datadoghq.com/about/resources/" target="_blank" rel="noopener">Brand &amp; resources</a>
+        <a href="https://www.datadoghq.com/about/" target="_blank" rel="noopener">About Datadog</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span class="copy">© 2026 Datadog, Inc. · Design exploration, not an official page.</span>
+        <div class="footer-legal">
+          <a href="#top">Back to top</a>
+          <a href="https://www.datadoghq.com/legal/privacy/" target="_blank" rel="noopener">Privacy</a>
+          <a href="https://www.datadoghq.com/legal/terms/" target="_blank" rel="noopener">Terms</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ ACCORDION + SEARCH ============ -->
+  <script>
+  (function(){
+    var secs = Array.prototype.slice.call(document.querySelectorAll('.sec'));
+    var heads = document.querySelectorAll('.sec-head');
+    var search = document.getElementById('psearch');
+    var scount = document.getElementById('scount');
+    var noresults = document.getElementById('noresults');
+    var html = document.documentElement;
+
+    heads.forEach(function(b){
+      b.addEventListener('click', function(){
+        if (html.getAttribute('data-layout') === 'expanded') return;
+        b.closest('.sec').classList.toggle('open');
+      });
+    });
+
+    function reset(){
+      secs.forEach(function(s){
+        s.style.display='';
+        if (html.getAttribute('data-layout') !== 'expanded') s.classList.remove('open');
+        s.querySelectorAll('.prod').forEach(function(p){ p.style.display=''; });
+        s.querySelectorAll('.sub').forEach(function(x){ x.style.display=''; });
+      });
+      scount.textContent='';
+      noresults.style.display='none';
+    }
+
+    function doSearch(){
+      var t = search.value.trim().toLowerCase();
+      if(!t){ reset(); return; }
+      var total=0;
+      secs.forEach(function(s){
+        var vis=0;
+        s.querySelectorAll('.prod').forEach(function(p){
+          var hit = p.textContent.toLowerCase().indexOf(t) !== -1;
+          p.style.display = hit ? '' : 'none';
+          if(hit) vis++;
+        });
+        var inner = s.querySelector('.sec-inner');
+        var kids = Array.prototype.slice.call(inner.children);
+        var curSub=null, subHas=false;
+        kids.forEach(function(k){
+          if(k.classList.contains('sub')){
+            if(curSub) curSub.style.display = subHas ? '' : 'none';
+            curSub=k; subHas=false;
+          } else if(k.classList.contains('prod') && k.style.display!=='none'){
+            subHas=true;
+          }
+        });
+        if(curSub) curSub.style.display = subHas ? '' : 'none';
+        s.style.display = vis ? '' : 'none';
+        s.classList.toggle('open', vis>0);
+        total += vis;
+      });
+      scount.textContent = total + (total===1 ? ' product matches' : ' products match');
+      noresults.style.display = total ? 'none' : '';
+    }
+    search.addEventListener('input', doSearch);
+
+    // expose so the tweaks panel can re-run search after layout change
+    window.__ddResearch = doSearch;
+
+    // open a section when its anchor is targeted (e.g. footer "Outcomes" links)
+    function openFromHash(){
+      var h = location.hash;
+      if(!h || h === '#top') return;
+      var el = document.querySelector(h);
+      if(el && el.classList.contains('sec') && html.getAttribute('data-layout') !== 'expanded'){
+        el.classList.add('open');
+      }
+    }
+    window.addEventListener('hashchange', openFromHash);
+    openFromHash();
+  })();
+  </script>
+
+</body>
+</html>
