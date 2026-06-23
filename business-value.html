@@ -334,7 +334,7 @@ const HRS_PER_YEAR = 2080;
 const CALCS = [
   { id:"incident", outcome:"Improve Reliability & Performance", label:"Incident resolution efficiency",
     desc:"Engineering time spent resolving incidents each year.", curLabel:"Current annual cost",
-    products:["APM","Log Management","Infrastructure Monitoring","Incident Response","Watchdog","Bits AI SRE"],
+    products:["APM","Log Management","Infrastructure Monitoring","Incident Response","Watchdog","Bits Investigation"],
     fields:[
       {id:"a",label:"Incidents per year",type:"num",val:120},
       {id:"b",label:"Avg. time to resolve per incident (hours)",type:"num",val:4},
@@ -347,7 +347,7 @@ const CALCS = [
 
   { id:"alerts", outcome:"Improve Reliability & Performance", label:"Alert fatigue",
     desc:"Time spent triaging and investigating alerts each year.", curLabel:"Current annual cost",
-    products:["Actionable Alerting","Watchdog","Event Management","Bits AI Agents"],
+    products:["Alerts","Watchdog","Event Management","Bits AI Agents"],
     fields:[
       {id:"a",label:"Alerts per year",type:"num",val:5000},
       {id:"b",label:"Time to investigate each alert (hours)",type:"num",val:0.5},
@@ -412,7 +412,7 @@ const CALCS = [
 
   { id:"secincident", outcome:"Reduce Security Risk", label:"Accelerate security incident remediation",
     desc:"Effort spent resolving security incidents each year.", curLabel:"Current annual cost",
-    products:["Cloud SIEM","Workload Protection","Workflow Automation","Bits AI Security Analyst"],
+    products:["Cloud SIEM","Workload Protection","Workflow Automation","Bits Security Analyst"],
     fields:[
       {id:"a",label:"Security incidents per year",type:"num",val:50},
       {id:"b",label:"Mean time to resolve (hours)",type:"num",val:8},
